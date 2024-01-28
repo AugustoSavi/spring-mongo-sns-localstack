@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  mongo:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./mongo:/data/db
+    networks:
+      - localstack_network
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - '8081:8081'
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+    depends_on:
+      - mongo
+    networks:
+      - localstack_network
+
+  localstack:
+      image: localstack/localstack
+      container_name: localstack
+      ports:
+        - "4566:4566" # sns
+      environment:
+        - DEFAULT_REGION=us-east-1
+        - SERVICES=sns
+        - DEBUG=1
+        - DATA_DIR=/tmp/localstack/data
+        - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+        - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+        - AWS_DEFAULT_REGION=us-east-1
+        - AWS_DEFAULT_OUTPUT=json
+      volumes:
+        - '/var/run/docker.sock:/var/run/docker.sock'
+      networks:
+        - localstack_network
+
+networks:
+  localstack_network:
+    driver: bridge

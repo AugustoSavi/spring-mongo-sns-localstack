@@ -1,0 +1,10 @@
+aws:
+  accessKeyId: ${AWS_PROD_KEY_ID}
+  secretKey: ${AWS_PROD_SECRET}
+  region: us-east-1
+  sns:
+    topic:
+      catalog:
+        arn: arn:aws:sns:us-east-1:058468256644:catalog-prod
+server:
+  port: 8080
