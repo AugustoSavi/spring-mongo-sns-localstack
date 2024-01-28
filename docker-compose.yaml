@@ -38,6 +38,7 @@ services:
         - AWS_DEFAULT_OUTPUT=json
       volumes:
         - '/var/run/docker.sock:/var/run/docker.sock'
+        - './lambda:/lambda'
       networks:
         - localstack_network
 

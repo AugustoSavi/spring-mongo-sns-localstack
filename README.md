@@ -37,7 +37,7 @@ sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sns
 ```
 
 #### Execução ira retornar:
-```
+```json
 {
 "TopicArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit"
 }
@@ -50,7 +50,7 @@ sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sqs
 ```
 
 #### Execução ira retornar:
-```
+```json
 {
 "QueueUrl": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update"
 }
@@ -74,10 +74,74 @@ sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns
 ```
 
 #### Execução ira retornar:
-```
+```json
 {
-    "SubscriptionArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit:2ad6ab5b-1a65-4098-8c52-49596792aaae"
+    "SubscriptionArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit:d6e263f7-cdce-46cb-af85-88366c5278a2"
 }
+```
+
+8. Criando a função lambda
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda create-function --function-name catalogEmitConsumer --zip-file fileb:///lambda/function.zip --handler index.handler --runtime nodejs20.x --role arn:aws:iam::123456789012:role/irrelevant
+```
+
+atualizar codigo da função
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda update-function-code --function-name catalogEmitConsumer --zip-file fileb:///lambda/function.zip
+
+```
+
+#### Execução ira retornar:
+```json
+{
+    "FunctionName": "catalogEmitConsumer",
+    "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:catalogEmitConsumer",
+    "Runtime": "nodejs20.x",
+    "Role": "arn:aws:iam::123456789012:role/irrelevant",
+    "Handler": "index.handler",
+    "CodeSize": 337,
+    "Description": "",
+    "Timeout": 3,
+    "MemorySize": 128,
+    "LastModified": "2024-01-28T05:46:50.095935+0000",
+    "CodeSha256": "DmiYO1hAx9WEMWEmHHE8LyZmXzrX3Xtm5wO6J2HJAr8=",
+    "Version": "$LATEST",
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "c3e8579a-1a9e-4bf2-984b-fe700dae54e9",
+    "State": "Pending",
+    "StateReason": "The function is being created.",
+    "StateReasonCode": "Creating",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+    },
+    "SnapStart": {
+        "ApplyOn": "None",
+        "OptimizationStatus": "Off"
+    },
+    "RuntimeVersionConfig": {
+        "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:8eeff65f6809a3ce81507fe733fe09b835899b99481ba22fd75b5a7338290ec1"
+    }
+}
+```
+
+
+## Chamar função manualmente:
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda invoke --function-name catalogEmitConsumer /tmp/response.json
+```
+
+## verificar retorno
+
+```bash
+sudo docker-compose exec localstack cat /tmp/response.json
 ```
 
 ### Teste de envio de mensagem via command line
