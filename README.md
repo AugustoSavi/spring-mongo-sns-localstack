@@ -1,150 +1,146 @@
 # Restaurant Marketplace
 
-Desenvolvimento da api do desafio da anotaAi no canal da Fernanda Kipper
+Este projeto consiste na implementação de uma API para o desafio da AnotaAi no canal da Fernanda Kipper. A API é desenvolvida utilizando as seguintes tecnologias:
 
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
-[![Licence](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](./LICENSE)
+[![Licença](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](./LICENSE)
 ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
 
-This project is an API built using **Java, Java Spring, AWS Simple Queue Service, Mongo DB and AWS Simple Storage Service.**
+## Sumário
 
-## Table of Contents
+- [Instalação](#instalação)
+- [Configuração](#configuração)
+- [Utilização](#utilização)
+- [Pontos de Extensão da API](#pontos-de-extensão-da-api)
+- [Contribuições](#contribuições)
 
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [API Endpoints](#api-endpoints)
-- [Database](#database)
-- [Contributing](#contributing)
+## Instalação
 
-## Installation
+1. Clone o repositório:
 
-1. Clone the repository:
+2. Instale as dependências com o Maven
 
-2. Install dependencies with Maven
-
-3. start services with docker-compose
+3. Inicie os serviços com o Docker Compose
 
 ```bash
 sudo docker-compose up
 ```
 
-4. Run the following command below to create the topic sns 
+4. Execute o seguinte comando abaixo para criar o tópico SNS
+
 ```bash
 sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sns create-topic --name catalog-emit
 ```
 
-#### Execução ira retornar:
+#### A execução retornará:
+
 ```json
 {
-"TopicArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit"
+  "TopicArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit"
 }
 ```
 
-5. Run the following command below to create the sqs
+5. Execute o seguinte comando abaixo para criar a fila SQS
 
 ```bash
 sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name catalog-update
 ```
 
-#### Execução ira retornar:
+#### A execução retornará:
+
 ```json
 {
-"QueueUrl": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update"
+  "QueueUrl": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update"
 }
 ```
 
 6. Obtenha o ARN da fila SQS:
 
-````bash
+```bash
 sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update --attribute-names QueueArn --output text
-````
+```
 
-#### Execução ira retornar:
+#### A execução retornará:
+
 ```
 ATTRIBUTES      arn:aws:sqs:us-east-1:000000000000:catalog-update
 ```
 
-7. Subscrever a Fila SQS ao Tópico SNS
+7. Inscreva a Fila SQS no Tópico SNS
 
 ```bash
 sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns subscribe --topic-arn arn:aws:sns:us-east-1:000000000000:catalog-emit --protocol sqs --notification-endpoint arn:aws:sqs:us-east-1:000000000000:catalog-update
 ```
 
-#### Execução ira retornar:
+#### A execução retornará:
+
 ```json
 {
-    "SubscriptionArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit:d6e263f7-cdce-46cb-af85-88366c5278a2"
+  "SubscriptionArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit:d6e263f7-cdce-46cb-af85-88366c5278a2"
 }
 ```
 
-8. Criando a função lambda
+8. Crie a função Lambda
 
 ```bash
 sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda create-function --function-name catalogEmitConsumer --zip-file fileb:///lambda/function.zip --handler index.handler --runtime nodejs20.x --role arn:aws:iam::123456789012:role/irrelevant
 ```
 
-atualizar codigo da função
+Atualize o código da função, se necessário:
+
 ```bash
 sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda update-function-code --function-name catalogEmitConsumer --zip-file fileb:///lambda/function.zip
-
 ```
 
-#### Execução ira retornar:
+#### A execução retornará:
+
 ```json
 {
-    "FunctionName": "catalogEmitConsumer",
-    "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:catalogEmitConsumer",
-    "Runtime": "nodejs20.x",
-    "Role": "arn:aws:iam::123456789012:role/irrelevant",
-    "Handler": "index.handler",
-    "CodeSize": 337,
-    "Description": "",
-    "Timeout": 3,
-    "MemorySize": 128,
-    "LastModified": "2024-01-28T05:46:50.095935+0000",
-    "CodeSha256": "DmiYO1hAx9WEMWEmHHE8LyZmXzrX3Xtm5wO6J2HJAr8=",
-    "Version": "$LATEST",
-    "TracingConfig": {
-        "Mode": "PassThrough"
-    },
-    "RevisionId": "c3e8579a-1a9e-4bf2-984b-fe700dae54e9",
-    "State": "Pending",
-    "StateReason": "The function is being created.",
-    "StateReasonCode": "Creating",
-    "PackageType": "Zip",
-    "Architectures": [
-        "x86_64"
-    ],
-    "EphemeralStorage": {
-        "Size": 512
-    },
-    "SnapStart": {
-        "ApplyOn": "None",
-        "OptimizationStatus": "Off"
-    },
-    "RuntimeVersionConfig": {
-        "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:8eeff65f6809a3ce81507fe733fe09b835899b99481ba22fd75b5a7338290ec1"
-    }
+  "FunctionName": "catalogEmitConsumer",
+  "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:catalogEmitConsumer",
+  "Runtime": "nodejs20.x",
+  "Role": "arn:aws:iam::123456789012:role/irrelevant",
+  "Handler": "index.handler",
+  "CodeSize": 337,
+  "Description": "",
+  "Timeout": 3,
+  "MemorySize": 128,
+  "LastModified": "2024-01-28T05:46:50.095935+0000",
+  "CodeSha256": "DmiYO1hAx9WEMWEmHHE8LyZmXzrX3Xtm5wO6J2HJAr8=",
+  "Version": "$LATEST",
+  "TracingConfig": {
+    "Mode": "PassThrough"
+  },
+  "RevisionId": "c3e8579a-1a9e-4bf2-984b-fe700dae54e9",
+  "State": "Pending",
+  "StateReason": "The function is being created.",
+  "StateReasonCode": "Creating",
+  "PackageType": "Zip",
+  "Architectures": [
+    "x86_64"
+  ],
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "SnapStart": {
+    "ApplyOn": "None",
+    "OptimizationStatus": "Off"
+  },
+  "RuntimeVersionConfig": {
+    "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:8eeff65f6809a3ce81507fe733fe09b835899b99481ba22fd75b5a7338290ec1"
+  }
 }
 ```
 
-
-## Chamar função manualmente:
-
-```bash
-sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda invoke --function-name catalogEmitConsumer /tmp/response.json
-```
-
-## verificar retorno
+9. Configure a Função Lambda para ser Acionada pela Fila SQS
 
 ```bash
-sudo docker-compose exec localstack cat /tmp/response.json
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda create-event-source-mapping --function-name catalogEmitConsumer --batch-size 1 --event-source-arn arn:aws:sqs:us-east-1:000000000000:catalog-update
 ```
 
-### Teste de envio de mensagem via command line
+### Teste de envio de mensagem via linha de comando
 
 1. **Publicar uma Mensagem no Tópico SNS:**
 
@@ -155,10 +151,24 @@ sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns
 2. **Verificar a Mensagem na Fila SQS:**
 
 ```bash
- sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs receive-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs receive-message --queue-url http://sqs
+
+.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update
 ```
 
-3. Create a configuration with your runtime environment variables with your AWS Credentials that are used in `application.properties`
+## Chamar função manualmente:
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda invoke --function-name catalogEmitConsumer /tmp/response.json
+```
+
+## Verificar o retorno
+
+```bash
+sudo docker-compose exec localstack cat /tmp/response.json
+```
+
+3. Crie uma configuração com suas variáveis de ambiente de execução da AWS que são usadas no arquivo `application.properties`
 
 ```yaml
 aws.region=us-east-1
@@ -166,28 +176,29 @@ aws.accessKeyId=${AWS_KEY_ID}
 aws.secretKey=${AWS_SECRET}
 ```
 
-**Config Values**
+**Valores de Configuração**
 
 ```yaml
-AWS_KEY_ID=VALUE;AWS_SECRET=VALUE2
+AWS_KEY_ID=VALOR1;AWS_SECRET=VALOR2
 ```
-## Usage
 
-1. Start the application with Maven
-2. The API will be accessible at http://localhost:8080
+## Utilização
 
-## API Endpoints
-The API provides the following endpoints:
+1. Inicie a aplicação com o Maven
+2. A API estará acessível em http://localhost:8080
 
-**API PRODUCT**
+## Pontos de Extensão da API
+A API fornece os seguintes pontos de extensão:
+
+**API PRODUTO**
 ```markdown
-POST /api/product - Create a new product
-GET /api/product - Retrieve all products
-PUT /api/product/{id} - Updates a product
-DELETE /api/product/{id} - Delete a product
+POST /api/product - Crie um novo produto
+GET /api/product - Recupere todos os produtos
+PUT /api/product/{id} - Atualize um produto
+DELETE /api/product/{id} - Exclua um produto
 ```
 
-**BODY**
+**CORPO**
 ```json
 {
   "title": "Produto para postar no tópico",
@@ -198,15 +209,15 @@ DELETE /api/product/{id} - Delete a product
 }
 ```
 
-**API CATEGORY**
+**API CATEGORIA**
 ```markdown
-POST /api/category - Create a new category
-GET /api/category - Retrieve all categories
-PUT /api/category/{id} - Updates a category
-DELETE /api/category/{id} - Delete a category
+POST /api/category - Crie uma nova categoria
+GET /api/category - Recupere todas as categorias
+PUT /api/category/{id} - Atualize uma categoria
+DELETE /api/category/{id} - Exclua uma categoria
 ```
 
-**BODY**
+**CORPO**
 ```json
 {
   "id": "393948882828",
@@ -216,12 +227,8 @@ DELETE /api/category/{id} - Delete a category
 }
 ```
 
-## Contributing
+## Contribuições
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request to the repository.
+Contribuições são bem-vindas! Se você encontrar algum problema ou tiver sugestões de melhorias, por favor, abra uma issue ou envie um pull request para o repositório.
 
-When contributing to this project, please follow the existing code style, [commit conventions](https://www.conventionalcommits.org/en/v1.0.0/), and submit your changes in a separate branch.
-
-
-
-
+Ao contribuir para este projeto, siga o estilo de código existente, as [convenções de commit](https://www.conventionalcommits.org/en/v1.0.0/), e envie suas alterações em um branch separado.
