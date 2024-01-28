@@ -26,13 +26,72 @@ This project is an API built using **Java, Java Spring, AWS Simple Queue Service
 2. Install dependencies with Maven
 
 3. start services with docker-compose
+
 ```bash
 sudo docker-compose up
 ```
 
-4. Run the following command below to create the topic 
+4. Run the following command below to create the topic sns 
 ```bash
-sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sns create-topic --name catalog-prod
+sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sns create-topic --name catalog-emit
+```
+
+#### Execução ira retornar:
+```
+{
+"TopicArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit"
+}
+```
+
+5. Run the following command below to create the sqs
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name catalog-update
+```
+
+#### Execução ira retornar:
+```
+{
+"QueueUrl": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update"
+}
+```
+
+6. Obtenha o ARN da fila SQS:
+
+````bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update --attribute-names QueueArn --output text
+````
+
+#### Execução ira retornar:
+```
+ATTRIBUTES      arn:aws:sqs:us-east-1:000000000000:catalog-update
+```
+
+7. Subscrever a Fila SQS ao Tópico SNS
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns subscribe --topic-arn arn:aws:sns:us-east-1:000000000000:catalog-emit --protocol sqs --notification-endpoint arn:aws:sqs:us-east-1:000000000000:catalog-update
+```
+
+#### Execução ira retornar:
+```
+{
+    "SubscriptionArn": "arn:aws:sns:us-east-1:000000000000:catalog-emit:2ad6ab5b-1a65-4098-8c52-49596792aaae"
+}
+```
+
+### Teste de envio de mensagem via command line
+
+1. **Publicar uma Mensagem no Tópico SNS:**
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns publish --topic-arn arn:aws:sns:us-east-1:000000000000:catalog-emit --message "Test message"
+```
+
+2. **Verificar a Mensagem na Fila SQS:**
+
+```bash
+ sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs receive-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update
 ```
 
 3. Create a configuration with your runtime environment variables with your AWS Credentials that are used in `application.properties`

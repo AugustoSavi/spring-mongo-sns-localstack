@@ -5,6 +5,6 @@ aws:
   sns:
     topic:
       catalog:
-        arn: arn:aws:sns:us-east-1:000000000000:catalog-prod
+        arn: arn:aws:sns:us-east-1:000000000000:catalog-emit
 server:
   port: 8080
