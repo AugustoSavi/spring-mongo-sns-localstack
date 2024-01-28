@@ -88,6 +88,22 @@ sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns
 sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda create-function --function-name catalogEmitConsumer --zip-file fileb:///lambda/function.zip --handler index.handler --runtime nodejs20.x --role arn:aws:iam::123456789012:role/irrelevant
 ```
 
+#### execução ira retornará:
+
+```json
+{
+    "UUID": "e61f8b0c-121b-4d1c-8f51-76b768f9da2f",
+    "BatchSize": 1,
+    "MaximumBatchingWindowInSeconds": 0,
+    "EventSourceArn": "arn:aws:sqs:us-east-1:000000000000:catalog-update",
+    "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:catalogEmitConsumer",
+    "LastModified": 1706460950.702148,
+    "State": "Creating",
+    "StateTransitionReason": "USER_INITIATED",
+    "FunctionResponseTypes": []
+}
+```
+
 Atualize o código da função, se necessário:
 
 ```bash
@@ -140,6 +156,53 @@ sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lam
 sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 lambda create-event-source-mapping --function-name catalogEmitConsumer --batch-size 1 --event-source-arn arn:aws:sqs:us-east-1:000000000000:catalog-update
 ```
 
+10. Crie o bucket S3
+
+````bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 s3api create-bucket --bucket anotaai-catalog-marketplace
+````
+
+#### A execução retornará:
+
+```json
+{
+    "Location": "/anotaai-catalog-marketplace"
+}
+```
+
+11. Listar objetos do bucket s3:
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 s3api list-objects --bucket anotaai-catalog-marketplace
+```
+
+#### A execução retornará:
+
+```json
+{
+    "Contents": [
+        {
+            "Key": "4444444-catalog.json",
+            "LastModified": "2024-01-28T17:00:25.000Z",
+            "ETag": "\"3b167696e141ec0b36de289ccaec466a\"",
+            "Size": 264,
+            "StorageClass": "STANDARD",
+            "Owner": {
+                "DisplayName": "webfile",
+                "ID": "75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a"
+            }
+        }
+    ],
+    "RequestCharged": null
+}
+```
+
+12. ver o conteudo de um objeto:
+
+```bash
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 s3api get-object --bucket anotaai-catalog-marketplace --key 4444444-catalog.json /temp/catalog.json
+```
+
 ### Teste de envio de mensagem via linha de comando
 
 1. **Publicar uma Mensagem no Tópico SNS:**
@@ -151,9 +214,7 @@ sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sns
 2. **Verificar a Mensagem na Fila SQS:**
 
 ```bash
-sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs receive-message --queue-url http://sqs
-
-.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update
+sudo docker-compose exec localstack aws --endpoint-url=http://localhost:4566 sqs receive-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/catalog-update
 ```
 
 ## Chamar função manualmente:

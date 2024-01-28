@@ -29,7 +29,7 @@ services:
         - "4566:4566" # sns
       environment:
         - DEFAULT_REGION=us-east-1
-        - SERVICES=sns,sqs,lambda
+        - SERVICES=sns,sqs,lambda,s3
         - DEBUG=1
         - DATA_DIR=/tmp/localstack/data
         - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
